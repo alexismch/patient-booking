@@ -8,20 +8,33 @@ datasource db {
 }
 
 model HealthProfessional {
-  id     Int      @id @default(autoincrement())
-  name   String
-  Events Events[]
+  id             Int            @id @default(autoincrement())
+  name           String         @unique
+  availabilities Availability[]
+  events         Event[]
 
   @@map("health-professionals")
 }
 
-model Events {
+model Availability {
+  healthProfessional   HealthProfessional? @relation(fields: [healthProfessionalId], references: [id])
+  healthProfessionalId Int
+  day                  Int
+  from                 String
+  to                   String
+
+  @@unique([healthProfessionalId, day, from, to])
+  @@map("availabilities")
+}
+
+model Event {
   id                   Int                @id @default(autoincrement())
   healthProfessional   HealthProfessional @relation(fields: [healthProfessionalId], references: [id])
   healthProfessionalId Int
-  name                 String
-  description          String
-  date                 DateTime
+  name                 String             @unique
+  description          String?
+  from                 DateTime
+  to                   DateTime
   bookedOn             DateTime
 
   @@map("events")
