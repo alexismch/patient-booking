@@ -25,6 +25,7 @@
       "@nestjs/common": "^10.0.2",
       "@nestjs/core": "^10.0.2",
       "@nestjs/platform-express": "^10.0.2",
+      "@prisma/client": "5.2.0",
       "reflect-metadata": "^0.1.13",
       "rxjs": "^7.8.0",
       "tslib": "^2.3.0"
@@ -51,6 +52,7 @@
       "lint-staged": "^14.0.1",
       "nx": "16.7.4",
       "prettier": "^2.6.2",
+      "prisma": "^5.2.0",
       "swc-loader": "^0.2.3",
       "typescript": "~5.1.3"
    },
