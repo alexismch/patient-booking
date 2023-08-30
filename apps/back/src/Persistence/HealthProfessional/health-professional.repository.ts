@@ -15,7 +15,7 @@ export class HealthProfessionalRepository {
       options: {
          include?: {
             availabilities?: boolean;
-            events?: boolean;
+            events?: boolean | { from: Date; to?: Date };
          };
       } = {},
    ) {
@@ -23,7 +23,30 @@ export class HealthProfessionalRepository {
          where: {
             id,
          },
-         include: options?.include,
+         include: {
+            availabilities: options?.include?.availabilities,
+            events:
+               typeof options?.include?.events === 'boolean'
+                  ? options?.include?.events
+                  : {
+                       where: {
+                          OR: [
+                             {
+                                from: {
+                                   gt: options?.include?.events?.from,
+                                   lt: options?.include?.events?.to,
+                                },
+                             },
+                             {
+                                to: {
+                                   gt: options?.include?.events?.from,
+                                   lt: options?.include?.events?.to,
+                                },
+                             },
+                          ],
+                       },
+                    },
+         },
       });
    }
 }

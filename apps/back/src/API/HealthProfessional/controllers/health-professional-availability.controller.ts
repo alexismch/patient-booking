@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Query } from '@nestjs/common';
+import { Controller, Get, Param, ParseIntPipe, Query } from '@nestjs/common';
 import { HealthProfessionalAvailabilityDTO } from '../dtos';
 import { HealthProfessionalService } from '../../../Domain/HealthProfessional/services';
 import { ParseDatePipe } from '../../../Utils';
@@ -13,18 +13,27 @@ export class HealthProfessionalAvailabilityController {
 
    @Get()
    async getAvailabilities(
-      @Param('hpId', ParseDatePipe) hpId: string,
+      @Param('hpId', ParseIntPipe) hpId: number,
       @Query('from', ParseDatePipe) from: Date,
       @Query('to', ParseDatePipe) to: Date,
    ): Promise<HealthProfessionalAvailabilityDTO[]> {
-      return this.healthProfessionalService.getAvailabilities(hpId, from, to);
+      const data = await this.healthProfessionalService.getAvailabilities(
+         hpId,
+         from,
+         to,
+      );
+      return data.map((v) => new HealthProfessionalAvailabilityDTO(v));
    }
 
    @Get('next')
    async getNextAvailability(
-      @Param('hpId') hpId: string,
+      @Param('hpId', ParseIntPipe) hpId: number,
       @Query('date', ParseDatePipe) date: Date,
    ): Promise<HealthProfessionalAvailabilityDTO> {
-      return this.healthProfessionalService.getNextAvailability(hpId, date);
+      const data = await this.healthProfessionalService.getNextAvailability(
+         hpId,
+         date,
+      );
+      return new HealthProfessionalAvailabilityDTO(data);
    }
 }
