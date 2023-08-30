@@ -1,6 +1,7 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
 import { HealthProfessionalAvailabilityDTO } from '../dtos';
 import { HealthProfessionalService } from '../../../Domain/HealthProfessional/services';
+import { ParseDatePipe } from '../../../Utils';
 
 @Controller({
    path: 'health-professionals/:hpId/availabilities',
@@ -12,18 +13,18 @@ export class HealthProfessionalAvailabilityController {
 
    @Get()
    async getAvailabilities(
-      @Param('hpId') hpId: string,
-      @Query('from') from: Date,
-      @Query('to') to: Date,
+      @Param('hpId', ParseDatePipe) hpId: string,
+      @Query('from', ParseDatePipe) from: Date,
+      @Query('to', ParseDatePipe) to: Date,
    ): Promise<HealthProfessionalAvailabilityDTO[]> {
-      return [];
+      return this.healthProfessionalService.getAvailabilities(hpId, from, to);
    }
 
    @Get('next')
    async getNextAvailability(
       @Param('hpId') hpId: string,
-      @Query('date') date: Date,
+      @Query('date', ParseDatePipe) date: Date,
    ): Promise<HealthProfessionalAvailabilityDTO> {
-      return null;
+      return this.healthProfessionalService.getNextAvailability(hpId, date);
    }
 }
