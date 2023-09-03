@@ -45,6 +45,9 @@ export class HealthProfessionalRepository {
                              },
                           ],
                        },
+                       orderBy: {
+                          from: 'asc',
+                       },
                     },
          },
       });
