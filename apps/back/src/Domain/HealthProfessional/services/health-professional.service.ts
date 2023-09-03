@@ -14,6 +14,13 @@ export class HealthProfessionalService {
       private readonly healthProfessionalRepository: HealthProfessionalRepository,
    ) {}
 
+   /**
+    * Get the availabilities of a health professional
+    *
+    * @param hpId the id of the health professional
+    * @param from the date after which it should look for availabilities
+    * @param to the date before which it should look for availabilities
+    */
    async getAvailabilities(
       hpId: number,
       from = new Date(),
@@ -46,6 +53,7 @@ export class HealthProfessionalService {
          { from: string; to: string }[]
       >();
 
+      // = Process only dates during which a health professional works
       for (
          let date = new Date(from);
          date <= to;
@@ -67,6 +75,7 @@ export class HealthProfessionalService {
          const dateKey = HealthProfessionalService.getDateKey(event.from);
          const dayAvailabilities = daysAvailabilities.get(dateKey);
 
+         // = Update the availabilities of a day by removing the time slot of the event
          for (let j = 0; j < dayAvailabilities?.length; j++) {
             const dayAvailability = dayAvailabilities[j];
             const from = new Date(`${dateKey} ${dayAvailability.from}`);
@@ -95,6 +104,7 @@ export class HealthProfessionalService {
          }
       }
 
+      // = Format the remaining availabilities
       const availabilities: IHealthProfessionalAvailability[] = [];
       for (const day of daysAvailabilities.keys()) {
          const dayAvailabilities = daysAvailabilities.get(day);
@@ -108,6 +118,12 @@ export class HealthProfessionalService {
       return availabilities;
    }
 
+   /**
+    * Get the next availability of a health professional
+    *
+    * @param hpId the id of the health professional
+    * @param after the date after which it should look for availabilities
+    */
    async getNextAvailability(
       hpId: number,
       after = new Date(),
@@ -129,14 +145,19 @@ export class HealthProfessionalService {
       );
 
       let availability: IHealthProfessionalAvailability;
+
+      // = Process working days by batch of 5
       do {
          HealthProfessionalService.cleanDates(after);
+
+         // = Retrieve the next 5 working days to process
          const rangeDates = HealthProfessionalService.getRangeDates(
             after,
             hpAvailabilities,
          );
          const lastDate = rangeDates.at(-1);
 
+         // = Get the events already planned during those 5 days
          const { events } = await this.getHealthProfessional(
             hpId,
             false,
@@ -158,12 +179,14 @@ export class HealthProfessionalService {
             return prev;
          }, new Map<string, Event[]>());
 
+         // = Process each day and verify if there is an availability
          dates: for (let i = 0; i < rangeDates.length; i++) {
             const date = rangeDates[i];
             const dateKey = HealthProfessionalService.getDateKey(date);
             const dayAvailabilities = hpAvailabilities.get(date.getDay());
             const dayEvents = daysEvents.get(dateKey);
 
+            // = If no events planned, specify the entire day is available
             if (!dayEvents?.length) {
                availability = {
                   startAt: new Date(`${dateKey} ${dayAvailabilities.from}`),
@@ -173,12 +196,14 @@ export class HealthProfessionalService {
                break;
             }
 
+            // = Process the events of the day
             for (let j = 0; j < dayEvents.length; j++) {
                const event = dayEvents[j];
                const fromAvailability = new Date(
                   `${dateKey} ${dayAvailabilities.from}`,
                );
 
+               // = Verify if there is an availability before that event
                if (fromAvailability < event.from) {
                   const prevEvent = dayEvents[j - 1];
 
@@ -192,6 +217,7 @@ export class HealthProfessionalService {
                   }
                }
 
+               // = If last event, verify if there is an availability after
                if (!dayEvents[j + 1]) {
                   const toAvailability = new Date(
                      `${dateKey} ${dayAvailabilities.to}`,
@@ -215,6 +241,15 @@ export class HealthProfessionalService {
       return availability;
    }
 
+   /**
+    * Get a specific health professional with, optionally, its day-to-day availabilities and events
+    *
+    * @param hpId the id of the health professional
+    * @param includeAvailabilities if it should include the day-to-day availabilities
+    * @param from include events after that date
+    * @param to include events before that date
+    * @private
+    */
    private async getHealthProfessional(
       hpId: number,
       includeAvailabilities = true,
@@ -282,6 +317,14 @@ export class HealthProfessionalService {
       return `${date.getHours()}:${date.getMinutes()}`;
    }
 
+   /**
+    * Get the next dates a health professional could have availabilities
+    *
+    * @param after the date after which it should get the next dates
+    * @param hpAvailabilities the day-to-day availabilities of a health professional
+    * @param pick the amount of dates to pick, default 5
+    * @private
+    */
    private static getRangeDates(
       after: Date,
       hpAvailabilities: Map<number, Availability>,
