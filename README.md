@@ -14,7 +14,7 @@ Those utilities have also been used:
 
 ## Running tasks
 
-First start, sync & seed the database:
+First, start, sync & seed the database:
 
 ```
 docker-compose up
@@ -24,7 +24,9 @@ yarn prisma db push
 yarn prisma db seed
 ```
 
-Then, start the API:
+Then, prepare the env by duplicating `.env.example` to `.env`
+
+Finally, start the API:
 
 ```
 yarn start back
